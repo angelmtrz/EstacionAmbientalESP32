@@ -8,9 +8,9 @@
 #include <Adafruit_BMP280.h>
 #include <MQUnifiedsensor.h>
 // --- CONFIGURACIÓN WI-FI Y ASKSENSORS ---
-const char* ssid = "Sin internetX";     // Coloca el nombre de tu Wi-Fi
-const char* password = "Amr250281@$.";    // Coloca la contraseña de tu Wi-Fi
-const char* apiKeyIn = "W9O33Oaw4WwkAIXCvIExB9P0uC5OxojD";  // Reemplaza con tu Api Key de AskSensors
+const char* ssid = "";     // Coloca el nombre de tu Wi-Fi - SSID
+const char* password = "";    // Coloca la contraseña de tu Wi-Fi
+const char* apiKeyIn = "";  // Reemplaza con tu Api Key de AskSensors
 
 const char* serverName = "http://api.asksensors.com/write/";
 
