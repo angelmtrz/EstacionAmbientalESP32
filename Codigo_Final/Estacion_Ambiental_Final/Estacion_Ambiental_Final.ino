@@ -17,11 +17,11 @@
 // =======================================================================
 // CONFIGURACION DE RED Y API
 // =======================================================================
-const char* ssid          = "Sin internetX";       // Cambia por el nombre de tu red Wi-Fi
-const char* password      = "Amr250281@$."; // Cambia por tu contraseña Wi-Fi
+const char* ssid          = "Tu SSID";       // Cambia por el nombre de tu red Wi-Fi
+const char* password      = "Tu contraseña de WiFi"; // Cambia por tu contraseña Wi-Fi
 
-const char* estacionSlug  = "Fisi-02";   // Identificador de tu estacion
-const char* apiToken      = "qNoGG9sIFbkfdLVD7S4sHjj2AopjcEzBz6NSg8Js";      // Token de autorizacion Bearer FISI-UNAP
+const char* estacionSlug  = "El nombre de tu estación (SLUG)";   // Identificador de tu estacion
+const char* apiToken      = "Tu API Token";      // Token de autorizacion Bearer FISI-UNAP
 const char* serverBaseUrl = "https://fisiunap.edu.pe/estacion-ambiental/api/estaciones/"; // URL base de la API
 
 // Servidor NTP y desfase horario para Perú (UTC-5)
