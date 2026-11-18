@@ -1,55 +1,95 @@
 # Estación Ambiental ESP32
 
-Repositorio con código fuente y guías para construir una **estación de monitoreo ambiental basada en ESP32**. Incluye ejemplos progresivos para el sensor de calidad del aire MQ-135, el sensor de temperatura y presión BMP280, y una versión completa con RTC DS1307, tarjeta MicroSD y telemetría mediante AskSensors.
+Proyecto de monitoreo ambiental basado en **ESP32** y desarrollado para la FISI-UNAP. El repositorio contiene el código final de medición y envío de datos, además de ejemplos y pruebas utilizadas durante el desarrollo.
 
-## Contenido del repositorio
+## Código principal: `Codigo_Final`
 
-- [`mq135_inicial/`](mq135_inicial/): ejemplo inicial para probar el MQ-135.
-- [`mq135_aire_limpio/`](mq135_aire_limpio/): ejemplo para obtener la referencia del sensor en aire limpio.
-- [`prueba_escaner_i2c/`](prueba_escaner_i2c/): escáner para identificar dispositivos conectados al bus I2C.
-- [`estacion_mq135_bme280/`](estacion_mq135_bme280/): monitoreo de gases con MQ-135 y de temperatura, presión y altitud con BMP280; presenta las lecturas por el monitor serial.
-- [`estacion_mq135_bme280_rtc_microsd/`](estacion_mq135_bme280_rtc_microsd/): versión con RTC DS1307, registro CSV en MicroSD y envío de temperatura, presión, CO₂ y CO a AskSensors por WiFi.
+La implementación que debe usarse para el funcionamiento final se encuentra en [`Codigo_Final/`](Codigo_Final/). Contiene dos programas:
 
-Cada carpeta incluye un sketch `.ino` y una guía propia con los detalles de esa implementación.
+### [`Estacion_Ambiental_Final`](Codigo_Final/Estacion_Ambiental_Final/)
 
-## Requisitos
+Sketch principal de la estación ambiental. Este programa:
 
-- Arduino IDE y soporte para placas ESP32 instalado desde el Gestor de Tarjetas.
-- Driver USB-serial apropiado para la placa (por ejemplo, CP210x si corresponde).
-- Librerías de Arduino:
-  - `MQUnifiedsensor`
-  - `Adafruit BMP280 Library`
-  - `Adafruit Unified Sensor`
-  - `RTClib` para la versión con RTC
-  - Las bibliotecas estándar `Wire`, `SPI`, `SD`, `WiFi` y `HTTPClient` para las funciones correspondientes.
+- Lee los sensores **MQ-7**, **MQ-135** y **MiCS-2714** mediante ADC.
+- Estima concentraciones de **CO**, **CO2**, **NH3** y **NO2** en ppm.
+- Utiliza el divisor de tensión 10 kΩ/10 kΩ para adaptar las señales de los sensores al ESP32.
+- Conecta el ESP32 a una red Wi-Fi.
+- Sincroniza la hora con un servidor NTP usando la zona horaria de Perú (UTC-5).
+- Envía una lectura cada 60 segundos mediante `HTTP POST` a la API de la Estación Ambiental FISI-UNAP.
+- Registra cada muestra en formato JSON plano con los campos `medido_en`, `co2_ppm`, `co_ppm`, `nh4_ppm` y `no2_ppm`.
 
-## Conexiones principales
+Archivo para cargar en Arduino IDE:
 
-| Componente | Señal | ESP32 | Uso |
+[`Codigo_Final/Estacion_Ambiental_Final/Estacion_Ambiental_Final.ino`](Codigo_Final/Estacion_Ambiental_Final/Estacion_Ambiental_Final.ino)
+
+### [`Calibracion_Sensores_MQ`](Codigo_Final/Calibracion_Sensores_MQ/)
+
+Programa auxiliar para obtener los valores de resistencia base (**R0**) de los sensores MQ-7 y MQ-135 en aire limpio.
+
+- Debe ejecutarse en aire limpio, sin humo ni gases.
+- Promedia 100 muestras por sensor.
+- Calcula e imprime por el puerto serie los valores `R0_MQ7` y `R0_MQ135`.
+- Estos valores deben reemplazarse en las constantes de calibración del sketch final.
+
+Archivo:
+
+[`Codigo_Final/Calibracion_Sensores_MQ/Calibracion_Sensores_MQ.ino`](Codigo_Final/Calibracion_Sensores_MQ/Calibracion_Sensores_MQ.ino)
+
+## Conexiones del montaje final
+
+| Componente | Señal | Pin ESP32 | Uso |
 | --- | --- | --- | --- |
-| MQ-135 | A0 / salida analógica | GPIO34 | Lectura analógica (ADC) |
-| BMP280 y RTC DS1307 | SDA | GPIO21 | Bus I2C compartido |
-| BMP280 y RTC DS1307 | SCL | GPIO22 | Bus I2C compartido |
-| Lector MicroSD | CS | GPIO5 | Selección SPI (`chipSelect`) |
-| Lector MicroSD | MOSI / MISO / SCK | Pines SPI estándar | Bus SPI |
+| MQ-7 | A0, salida analógica | GPIO34 | Monóxido de carbono (CO) |
+| MQ-135 | A0, salida analógica | GPIO35 | Calidad del aire, CO2 y NH3 |
+| MiCS-2714 | Salida analógica | GPIO32 | Dióxido de nitrógeno (NO2) |
 
-> **Importante:** verifica la tensión de salida del módulo MQ-135 antes de conectarlo al ADC del ESP32, que no es tolerante a 5 V. Usa un divisor de tensión o acondicionamiento de nivel adecuado para mantener la señal dentro del rango seguro; una resistencia en serie por sí sola no garantiza la reducción de tensión. Consulta también las guías específicas de cada montaje y la alimentación requerida por los módulos.
+Los tres sensores usan únicamente entradas del canal ADC1 del ESP32. Para la alimentación y señal de los módulos MQ se recomienda el divisor de tensión indicado en el código.
 
-## Empezar
+> **Importante:** verifica la tensión de salida de cada módulo antes de conectarlo al ADC del ESP32. El ADC no debe recibir niveles superiores a 3.3 V.
 
-1. Clona o descarga este repositorio.
-2. Instala Arduino IDE, el soporte para ESP32 y las bibliotecas necesarias.
-3. Abre en Arduino IDE el `.ino` de la carpeta que quieras probar.
-4. Selecciona **ESP32 Dev Module** (o la placa equivalente) y el puerto correcto.
-5. Para el ejemplo básico, abre `estacion_mq135_bme280/estacion_mq135_bme280.ino`. Para el montaje completo, abre `estacion_mq135_bme280_rtc_microsd/estacion_mq135_bme280_rtc_microsd.ino`.
-6. En la versión con conectividad, configura `ssid`, `password` y `apiKeyIn` en el sketch antes de cargarlo. No publiques credenciales reales.
-7. Abre el monitor serie a **115200 baudios** para revisar el estado y las lecturas.
+## Configuración requerida
 
-## Funciones de la estación completa
+1. Instala Arduino IDE y el soporte para placas ESP32 desde el Gestor de Tarjetas.
+2. Instala o verifica las bibliotecas incluidas por el entorno ESP32:
+   - `WiFi`
+   - `HTTPClient`
+   - `time`
+   - `math`
+3. Abre `Codigo_Final/Estacion_Ambiental_Final/Estacion_Ambiental_Final.ino`.
+4. Sustituye las credenciales de ejemplo por las de tu propia red Wi-Fi.
+5. Configura `estacionSlug` y `apiToken` con los datos válidos de tu instalación.
+6. Ejecuta primero `Codigo_Final/Calibracion_Sensores_MQ/Calibracion_Sensores_MQ.ino` en aire limpio y espera al menos 3 a 5 minutos de estabilización.
+7. Copia los valores obtenidos de `R0_MQ7` y `R0_MQ135` en las constantes del sketch principal.
+8. Selecciona la placa **ESP32 Dev Module** o el modelo equivalente, configura el puerto y carga el código final.
+9. Abre el monitor serie a **115200 baudios**.
 
-La versión `estacion_mq135_bme280_rtc_microsd` registra las mediciones en `/datos.csv`, usa un RTC DS1307 para la fecha y hora, y envía datos a AskSensors cada 25 segundos. El sketch usa GPIO21/GPIO22 para I2C y GPIO5 como CS de la MicroSD. El MQ-135 se conecta a GPIO34.
+### Seguridad de credenciales
 
-Las lecturas de gases del MQ-135 son estimaciones derivadas de la calibración y de las curvas de respuesta configuradas en el código; no sustituyen un instrumento de medición certificado. Los valores de calibración `R0` son específicos del montaje y deben verificarse para cada sensor.
+No publiques contraseñas, claves API ni tokens reales. Antes de compartir o subir cambios, reemplaza los valores sensibles del sketch por credenciales propias no comprometidas. Si una credencial ya fue publicada en el historial de Git, revócala y reemplázala.
+
+## Uso de la estación final
+
+Después de cargar el sketch principal:
+
+1. El ESP32 se conecta a la red Wi-Fi configurada.
+2. Obtiene fecha y hora mediante NTP con desfase UTC-5.
+3. Lee los sensores una vez por minuto.
+4. Calcula las concentraciones y construye el paquete JSON.
+5. Envía el paquete a la API mediante HTTP POST con autorización Bearer.
+
+Las concentraciones calculadas a partir de los sensores MQ son estimaciones que dependen de la calibración, el ambiente y las curvas configuradas. No sustituyen mediciones realizadas con instrumentos certificados.
+
+## Carpeta `pruebas`
+
+La carpeta [`pruebas/`](pruebas/) contiene ejemplos y versiones anteriores utilizadas para validar componentes por separado:
+
+- Lectura directa del **MQ-135**.
+- Obtención de referencia del sensor en aire limpio.
+- Escáner del bus I2C.
+- Integración gradual del MQ-135 y el BMP280.
+- Prueba anterior con MQ-135, BMP280, RTC DS1307, MicroSD y AskSensors.
+
+Estos programas son material de referencia y desarrollo; **no son necesarios para el funcionamiento final del proyecto**. Para montar y operar la versión definitiva, usa únicamente los archivos contenidos en [`Codigo_Final/`](Codigo_Final/).
 
 ## Licencia
 
