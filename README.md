@@ -2,6 +2,10 @@
 
 Proyecto de monitoreo ambiental basado en **ESP32** y desarrollado para la FISI-UNAP. El repositorio contiene el código final de medición y envío de datos, además de ejemplos y pruebas utilizadas durante el desarrollo.
 
+## Conexiones físicas de los sensores
+
+Consulta esta [lista de reproducción de YouTube](https://youtube.com/playlist?list=PLFOCXO8_Xn3w&si=ILuiqXIwQ4eIjgxy) con 3 videos que explican las conexiones físicas de los sensores a la placa ESP32 DevKit V1.
+
 ## Código principal: `Codigo_Final`
 
 La implementación que debe usarse para el funcionamiento final se encuentra en [`Codigo_Final/`](Codigo_Final/). Contiene dos programas:
