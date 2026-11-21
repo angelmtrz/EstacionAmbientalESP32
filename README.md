@@ -4,7 +4,7 @@ Proyecto de monitoreo ambiental basado en **ESP32** y desarrollado para la FISI-
 
 ## Conexiones físicas de los sensores
 
-Consulta esta [lista de reproducción de YouTube](https://youtube.com/playlist?list=PLFOCXO8_Xn3w&si=ILuiqXIwQ4eIjgxy) con 3 videos que explican las conexiones físicas de los sensores a la placa ESP32 DevKit V1.
+Consulta esta [lista de reproducción de YouTube](https://youtube.com/playlist?list=PLFOCXO8_Xn3w&si=ILuiqXIwQ4eIjgxy) con los 5 videos del proyecto. Incluyen las conexiones físicas de los sensores a la placa ESP32 DevKit V1, el proceso de calibración de los sensores con Arduino IDE y la carga del código final al ESP32.
 
 ## Código principal: `Codigo_Final`
 
@@ -69,7 +69,7 @@ Los tres sensores usan únicamente entradas del canal ADC1 del ESP32. Para la al
 
 ### Seguridad de credenciales
 
-No publiques contraseñas, claves API ni tokens reales. Antes de compartir o subir cambios, reemplaza los valores sensibles del sketch por credenciales propias no comprometidas. Si una credencial ya fue publicada en el historial de Git, revócala y reemplázala.
+No publiques contraseñas, claves API ni tokens reales. Antes de compartir o subir cambios, reemplaza los valores sensibles del sketch por credenciales propias no comprometidas. Si una credencial real ya fue publicada en el historial de Git, revócala y reemplázala.
 
 ## Uso de la estación final
 
