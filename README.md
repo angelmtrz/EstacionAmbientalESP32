@@ -4,7 +4,7 @@ Proyecto de monitoreo ambiental basado en **ESP32** y desarrollado para la FISI-
 
 ## Conexiones físicas de los sensores
 
-Consulta esta [lista de reproducción de YouTube](https://youtube.com/playlist?list=PLFOCXO8_Xn3w&si=ILuiqXIwQ4eIjgxy) con los 5 videos del proyecto. Incluyen las conexiones físicas de los sensores a la placa ESP32 DevKit V1, el proceso de calibración de los sensores con Arduino IDE y la carga del código final al ESP32.
+Consulta esta [lista de reproducción de YouTube](https://youtube.com/playlist?list=PLFOCXO8_Xn3w&si=ILuiqXIwQ4eIjgxy) con los 6 videos del proyecto. Incluyen las conexiones físicas de los sensores a la placa ESP32 DevKit V1, el proceso de calibración de los sensores con Arduino IDE y la carga del código final al ESP32, y finalmente la instalación del ESP32 y sus sensores dentro de la caja de PVC.
 
 ## Código principal: `Codigo_Final`
 
