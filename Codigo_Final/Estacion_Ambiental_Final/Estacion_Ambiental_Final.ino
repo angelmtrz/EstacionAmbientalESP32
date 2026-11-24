@@ -97,8 +97,9 @@ float calcularCo2Ppm(float voltaje) {
 	float rs = calcularRs(voltaje); 
 	float ratio = rs / R0_MQ135; 
 	float ppm = 13915.0 * pow(ratio, -2.769); 
-
-	return (ppm < 0.0) ? 0.0 : ppm; // Muestra fluctuaciones reales alrededor de 400 ppm 
+	//return (ppm < 0.0) ? 0.0 : ppm; // Muestra fluctuaciones reales alrededor de 400 ppm 
+	if (ppm < 400.0) ppm = 400.0; // Línea base natural del aire (~400 ppm)
+  	return ppm;
 }
 // 3. Cálculo de NH3 (PPM) para MQ-135 usando curva logarítmica
 float calcularNh4Ppm(float voltaje) {
