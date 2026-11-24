@@ -58,7 +58,13 @@ float leerVoltajeSensor(int pin) {
   float voltajeADC = (lecturaADC / 4095.0) * 3.3;
   return voltajeADC * 2.0; // Multiplicamos por 2.0 debido al divisor de tensión
 }
-
+//
+// Lectura analógica directa de 0 a 3.3V (específica para MiCS-2714 sin divisor) 
+float leerVoltajeDirecto(int pin) { 
+	int lecturaADC = analogRead(pin); 
+	return (lecturaADC / 4095.0) * 3.3; // Sin multiplicar por 2.0 
+}
+//
 // Obtener la resistencia instantánea Rs del sensor
 float calcularRs(float voltajeSensor) {
   if (voltajeSensor >= 4.95) voltajeSensor = 4.95;
@@ -105,12 +111,18 @@ float calcularNh4Ppm(float voltaje) {
 }
 
 // 4. Cálculo de NO2 (PPM) para MiCS-2714
-float calcularNo2Ppm(float voltaje) {
-  float ppm = (voltaje / 3.3) * 2.0; // Respuesta analógica para MiCS-2714
-  if (ppm < 0.0) ppm = 0.0;
-  return ppm;
+//float calcularNo2Ppm(float voltaje) {
+//  float ppm = (voltaje / 3.3) * 2.0; // Respuesta analógica para MiCS-2714
+// if (ppm < 0.0) ppm = 0.0;
+//  return ppm;
+//}
+//
+// Función corregida para Dióxido de Nitrógeno (NO2) 
+float calcularNo2Ppm(float voltajeDirecto) { 
+	float ppm = (voltajeDirecto / 3.3) * 2.0; 
+	return (ppm < 0.0) ? 0.0 : ppm; 
 }
-
+//
 // Obtener fecha y hora en formato ISO-8601 (Perú UTC-5)
 String obtenerFechaHoraISO() {
   struct tm timeinfo;
@@ -137,12 +149,14 @@ void enviarLecturaAPI() {
   // 1. Obtención de voltajes reales compensados
   float vMQ7   = leerVoltajeSensor(PIN_MQ7);
   float vMQ135 = leerVoltajeSensor(PIN_MQ135);
-  float vMiCS  = leerVoltajeSensor(PIN_MICS2714);
+  //float vMiCS  = leerVoltajeSensor(PIN_MICS2714);
+  float vMiCS = leerVoltajeDirecto(PIN_MICS2714);  // Lectura sin multiplicar por 2.0 
 
   // 2. Cálculo de concentraciones PPM calibradas
   float co_ppm  = calcularCoPpm(vMQ7);
   float co2_ppm = calcularCo2Ppm(vMQ135);
   float nh4_ppm = calcularNh4Ppm(vMQ135);
+  //float no2_ppm = calcularNo2Ppm(vMiCS);
   float no2_ppm = calcularNo2Ppm(vMiCS);
 
   // 3. Estructuración del JSON plano requerido por la API FISI-UNAP
