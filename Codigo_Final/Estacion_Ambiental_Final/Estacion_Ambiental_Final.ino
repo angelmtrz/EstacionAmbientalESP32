@@ -13,6 +13,8 @@
 #include <HTTPClient.h>
 #include <time.h>
 #include <math.h>
+// Agregar esta libreria para corregir el problema de Conexión rechazada
+#include <WiFiClientSecure.h>
 
 // =======================================================================
 // CONFIGURACION DE RED Y API
@@ -168,41 +170,54 @@ void enviarLecturaAPI() {
   jsonPayload += "\"nh4_ppm\":" + String(nh4_ppm, 2) + ",";
   jsonPayload += "\"no2_ppm\":" + String(no2_ppm, 4);
   jsonPayload += "}";
+	// ****
+  // Agregar este codigo para evitar la revision del certificado de seguridad
+  // y el rechazo de la conexión
+  // - Crear el cliente seguro
+  WiFiClientSecure client;
+  // - Configurar setInsecure() ANTES de http.begin()
+  client.setInsecure();
+  client.setHandshakeTimeout(30); // Evita cortes si el servidor tarda en responder el saludo TLS
+  // ****
 
   // 4. Inicialización cliente HTTP
   HTTPClient http;
   String endpointUrl = String(serverBaseUrl) + estacionSlug + "/lecturas";
-  http.begin(endpointUrl);
+  //http.begin(endpointUrl);
+// ****
+  if (http.begin(client, endpointUrl)){
+      http.addHeader("Content-Type", "application/json");
+      http.addHeader("Authorization", "Bearer " + String(apiToken));
 
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("Authorization", "Bearer " + String(apiToken));
+      Serial.println("\n--------------------------------------------------");
+      Serial.println("Enviando telemetría calibrada a la API FISI-UNAP:");
+      Serial.println("Endpoint: " + endpointUrl);
+      Serial.println("Payload:  " + jsonPayload);
 
-  Serial.println("\n--------------------------------------------------");
-  Serial.println("Enviando telemetría calibrada a la API FISI-UNAP:");
-  Serial.println("Endpoint: " + endpointUrl);
-  Serial.println("Payload:  " + jsonPayload);
+      int httpCode = http.POST(jsonPayload);
 
-  int httpCode = http.POST(jsonPayload);
+      if (httpCode > 0) {
+        String response = http.getString();
+        Serial.printf("Respuesta HTTP [%d]: %s\n", httpCode, response.c_str());
 
-  if (httpCode > 0) {
-    String response = http.getString();
-    Serial.printf("Respuesta HTTP [%d]: %s\n", httpCode, response.c_str());
+        if (httpCode == 201 || httpCode == 200) {
+          Serial.println("-> [ÉXITO] Lectura ambiental registrada correctamente.");
+        } else if (httpCode == 401) {
+          Serial.println("-> [ERROR 401] Token Bearer no válido.");
+        } else if (httpCode == 422) {
+          Serial.println("-> [ERROR 422] Parámetros rechazados por la API.");
+        } else if (httpCode == 429) {
+          Serial.println("-> [ERROR 429] Límite de tasa excedido (esperar 1 minuto).");
+        }
+      } else {
+        Serial.printf("-> [ERROR HTTP] Error de comunicación: %s\n", http.errorToString(httpCode).c_str());
+      }
 
-    if (httpCode == 201 || httpCode == 200) {
-      Serial.println("-> [ÉXITO] Lectura ambiental registrada correctamente.");
-    } else if (httpCode == 401) {
-      Serial.println("-> [ERROR 401] Token Bearer no válido.");
-    } else if (httpCode == 422) {
-      Serial.println("-> [ERROR 422] Parámetros rechazados por la API.");
-    } else if (httpCode == 429) {
-      Serial.println("-> [ERROR 429] Límite de tasa excedido (esperar 1 minuto).");
-    }
-  } else {
-    Serial.printf("-> [ERROR HTTP] Error de comunicación: %s\n", http.errorToString(httpCode).c_str());
+      http.end();
+      Serial.println("--------------------------------------------------\n");
   }
-
-  http.end();
-  Serial.println("--------------------------------------------------\n");
+  client.stop();
+  // ***
 }
 
 // =======================================================================
