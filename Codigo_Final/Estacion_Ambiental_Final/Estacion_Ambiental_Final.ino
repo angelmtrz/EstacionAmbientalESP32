@@ -8,14 +8,11 @@
   
   Conexion: HTTP POST (JSON) con token Bearer hacia la API de la Estacion Ambiental FISI-UNAP.
 */
-
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <time.h>
 #include <math.h>
-// Agregar esta libreria para corregir el problema de Conexión rechazada
-#include <WiFiClientSecure.h>
-
+#include <WiFiClientSecure.h> // Agregar esta libreria para corregir el problema de Conexión rechazada
 // =======================================================================
 // CONFIGURACION DE RED Y API
 // =======================================================================
@@ -35,6 +32,7 @@ const int   daylightOffset_sec = 0;   // Sin horario de verano
 // CONSTANTES DE CALIBRACIÓN R0 (REEMPLAZAR CON TUS VALORES OBTENIDOS)
 // =======================================================================
 // Coloca aquí los valores exactos impresos por CalibracionSensoresMQ.ino:
+// Reemplazar estos valores con los que arroja el monitor serial luego de correr la calibración de sensores
 float R0_MQ7   = 0.45; // Ejemplo: R0 del MQ-7 en kOhm (obtener del Monitor Serie)
 float R0_MQ135 = 275; // Ejemplo: R0 del MQ-135 en kOhm (obtener del Monitor Serie)
 
@@ -73,7 +71,6 @@ float calcularRs(float voltajeSensor) {
   if (voltajeSensor <= 0.05) voltajeSensor = 0.05;
   return ((5.0 - voltajeSensor) / voltajeSensor) * RL_MODULE_KOHM;
 }
-
 // 1. Cálculo de CO (PPM) para MQ-7 usando curva logarítmica
 float calcularCoPpm(float voltaje) {
   float rs = calcularRs(voltaje);
@@ -83,18 +80,7 @@ float calcularCoPpm(float voltaje) {
   if (ppm < 0.0) ppm = 0.0;
   return ppm;
 }
-
 // 2. Cálculo de CO2 (PPM) para MQ-135 usando curva logarítmica
-/*
-float calcularCo2Ppm(float voltaje) {
-  float rs = calcularRs(voltaje);
-  float ratio = rs / R0_MQ135;
-  // Curva de sensibilidad MQ-135 para CO2: PPM = 116.602 * (Rs/R0)^(-2.769)
-  float ppm = 116.602 * pow(ratio, -2.769);
-  if (ppm < 400.0) ppm = 400.0; // Línea base natural del aire (~400 ppm)
-  return ppm;
-}
-*/
 float calcularCo2Ppm(float voltaje) { 
 	float rs = calcularRs(voltaje); 
 	float ratio = rs / R0_MQ135; 
@@ -112,14 +98,7 @@ float calcularNh4Ppm(float voltaje) {
   if (ppm < 0.0) ppm = 0.0;
   return ppm;
 }
-
 // 4. Cálculo de NO2 (PPM) para MiCS-2714
-//float calcularNo2Ppm(float voltaje) {
-//  float ppm = (voltaje / 3.3) * 2.0; // Respuesta analógica para MiCS-2714
-// if (ppm < 0.0) ppm = 0.0;
-//  return ppm;
-//}
-//
 // Función corregida para Dióxido de Nitrógeno (NO2) 
 float calcularNo2Ppm(float voltajeDirecto) { 
 	float ppm = (voltajeDirecto / 3.3) * 2.0; 
@@ -179,7 +158,6 @@ void enviarLecturaAPI() {
   client.setInsecure();
   client.setHandshakeTimeout(30); // Evita cortes si el servidor tarda en responder el saludo TLS
   // ****
-
   // 4. Inicialización cliente HTTP
   HTTPClient http;
   String endpointUrl = String(serverBaseUrl) + estacionSlug + "/lecturas";
